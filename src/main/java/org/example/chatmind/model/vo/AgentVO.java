@@ -1,14 +1,18 @@
 package org.example.chatmind.model.vo;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.chatmind.model.dto.AgentDTO;
 
 import java.util.List;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AgentVO {
     private String id;
 
