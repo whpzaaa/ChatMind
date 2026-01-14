@@ -15,4 +15,6 @@ public interface ChatMessageService {
 
     List<ChatMessageVO> getBySessionId(String sessionId);
 
+    List<ChatMessageVO> getBySessionIdRecently(String sessionId,int limit);
+
 }

@@ -6,6 +6,7 @@ import org.example.chatmind.model.dto.DocumentDTO;
 import org.example.chatmind.model.vo.DocumentVO;
 import org.example.chatmind.service.DocumentService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -47,7 +48,12 @@ public class DocumentController {
         return ApiResponse.success(documents);
     }
 
-    //TODO: 上传文档（上传文件并创建记录）
+    @PostMapping("/upload")
+    public ApiResponse<String> uploadDocument(
+            @RequestParam("kbId") String kbId
+            ,@RequestParam("file") MultipartFile file) {
+        return ApiResponse.success(documentService.uploadDocument(kbId,file));
+    }
 //    @GetMapping("/page")
 //    public ApiResponse<List<DocumentVO>> getByPage(@RequestParam(defaultValue = "1") int pageNum,
 //                                                     @RequestParam(defaultValue = "10") int pageSize) {

@@ -19,9 +19,9 @@ public interface ChatSessionService {
 
     List<ChatSessionVO> getAll();
 
-    List<ChatSessionVO> getByPage(int pageNum, int pageSize);
+//    List<ChatSessionVO> getByPage(int pageNum, int pageSize);
 
-    int count();
-
-    int countByAgentId(String agentId);
+//    int count();
+//
+//    int countByAgentId(String agentId);
 }

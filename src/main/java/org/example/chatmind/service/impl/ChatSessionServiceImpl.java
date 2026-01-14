@@ -80,24 +80,24 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<ChatSessionVO> getByPage(int pageNum, int pageSize) {
-        int offset = (pageNum - 1) * pageSize;
-        List<ChatSession> chatSessions = chatSessionMapper.selectByPage(offset, pageSize);
-        return chatSessions.stream()
-                .map(this::convertToVO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public int count() {
-        return chatSessionMapper.count();
-    }
-
-    @Override
-    public int countByAgentId(String agentId) {
-        return chatSessionMapper.countByAgentId(agentId);
-    }
+//    @Override
+//    public List<ChatSessionVO> getByPage(int pageNum, int pageSize) {
+//        int offset = (pageNum - 1) * pageSize;
+//        List<ChatSession> chatSessions = chatSessionMapper.selectByPage(offset, pageSize);
+//        return chatSessions.stream()
+//                .map(this::convertToVO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    @Override
+//    public int count() {
+//        return chatSessionMapper.count();
+//    }
+//
+//    @Override
+//    public int countByAgentId(String agentId) {
+//        return chatSessionMapper.countByAgentId(agentId);
+//    }
 
     private ChatSession convertToEntity(ChatSessionDTO dto) {
         ChatSession chatSession = new ChatSession();

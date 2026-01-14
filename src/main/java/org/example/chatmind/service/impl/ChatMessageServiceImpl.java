@@ -62,6 +62,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ChatMessageVO> getBySessionIdRecently(String sessionId, int limit) {
+        List<ChatMessage> chatMessages = chatMessageMapper.selectBySessionIdRecently(sessionId, limit);
+        return chatMessages.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
+    }
+
 
     private ChatMessage convertToEntity(ChatMessageDTO dto) {
         ChatMessage chatMessage = new ChatMessage();
