@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.example.chatmind.agent.tools.Tool;
+import org.example.chatmind.agent.tools.ToolType;
 import org.example.chatmind.config.ChatClientRegistry;
 import org.example.chatmind.mapper.AgentMapper;
 import org.example.chatmind.mapper.ChatMessageMapper;
@@ -18,15 +20,19 @@ import org.example.chatmind.model.entity.KnowledgeBase;
 import org.example.chatmind.model.vo.AgentVO;
 import org.example.chatmind.service.ChatMessageService;
 import org.example.chatmind.service.SseService;
+import org.example.chatmind.service.impl.ToolServiceImpl;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.*;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,8 +47,9 @@ public class ChatMindFactory {
     private final ObjectMapper objectMapper;
     private  AgentVO agentConfig;
     private final ChatMessageService chatMessageService;
+    private final ToolServiceImpl toolService;
 
-    public ChatMindFactory(ChatClientRegistry chatClientRegistry, SseService sseService, AgentMapper agentMapper, KnowledgeBaseMapper knowledgeBaseMapper, ChatMessageMapper chatMessageMapper, ObjectMapper objectMapper, ChatMessageService chatMessageService) {
+    public ChatMindFactory(ChatClientRegistry chatClientRegistry, SseService sseService, AgentMapper agentMapper, KnowledgeBaseMapper knowledgeBaseMapper, ChatMessageMapper chatMessageMapper, ObjectMapper objectMapper, ChatMessageService chatMessageService, ToolServiceImpl toolService) {
         this.chatClientRegistry = chatClientRegistry;
         this.sseService = sseService;
         this.agentMapper = agentMapper;
@@ -50,6 +57,7 @@ public class ChatMindFactory {
         this.chatMessageMapper = chatMessageMapper;
         this.objectMapper = objectMapper;
         this.chatMessageService = chatMessageService;
+        this.toolService = toolService;
     }
     private Agent getAgent(String agentId) {
         return agentMapper.selectById(agentId);
@@ -143,7 +151,40 @@ public class ChatMindFactory {
                 .toList();
     }
 
-    //TODO:实现获取tools
+    private List<Tool> getTools(AgentVO agentConfig) {
+        //固定工具
+        List<Tool> runtimeTools = new ArrayList<>(toolService.getFixedTools());
+        //可选工具
+        agentConfig.getAllowedTools().forEach(toolName -> {
+            Tool tool = toolService.getByName(toolName);
+            if(tool != null) runtimeTools.add(tool);
+        });
+        return runtimeTools;
+    }
+
+    private List<ToolCallback> getToolCallbacks(List<Tool> runtimeTools) {
+        List<ToolCallback> toolCallbacks = new ArrayList<>();
+        for (Tool tool : runtimeTools) {
+            Object toolTarget = getToolTarget(tool);
+            ToolCallback[] callbacks = MethodToolCallbackProvider.builder()
+                    .toolObjects(toolTarget)
+                    .build()
+                    .getToolCallbacks();
+            toolCallbacks.addAll(Arrays.asList(callbacks));
+        }
+        return toolCallbacks;
+    }
+
+    private Object getToolTarget(Tool tool){
+        try {
+            return AopUtils.isAopProxy( tool)
+                    ? AopUtils.getTargetClass(tool)
+                    : tool;
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "解析工具目标对象失败: " + tool.getName(), e);
+        }
+    }
 
     private ChatMind buildChatMind(
             Agent agent,
@@ -176,10 +217,12 @@ public class ChatMindFactory {
         AgentVO agentConfig = convertToVO(agent);
         List<Message> memory = restoreMemory(chatSessionId);
         List<KnowledgeBaseDTO> availableKnowledgeBases = getKnowledgeBases(agentConfig);
+        List<Tool> tools = getTools(agentConfig);
+        List<ToolCallback> toolCallbacks = getToolCallbacks(tools);
         return buildChatMind(
                 agent,
                 memory,
-                null,
+                toolCallbacks,
                 availableKnowledgeBases,
                 chatSessionId);
     }
