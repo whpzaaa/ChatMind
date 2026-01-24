@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.KnowledgeBaseDTO;
+import org.example.chatmind.model.response.CreateKnowledgeBaseResponse;
+import org.example.chatmind.model.response.GetKnowledgeBasesResponse;
 import org.example.chatmind.model.vo.KnowledgeBaseVO;
 import org.example.chatmind.service.KnowledgeBaseService;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,9 @@ public class KnowledgeBaseController {
     private final KnowledgeBaseService knowledgeBaseService;
 
     @PostMapping
-    public ApiResponse<String> create(@RequestBody KnowledgeBaseDTO dto) {
+    public ApiResponse<CreateKnowledgeBaseResponse> create(@RequestBody KnowledgeBaseDTO dto) {
         String knowledgeBaseId = knowledgeBaseService.create(dto);
-        return ApiResponse.success(knowledgeBaseId);
+        return ApiResponse.success(CreateKnowledgeBaseResponse.builder().knowledgeBaseId(knowledgeBaseId).build());
     }
 
     @PutMapping("/{id}")
@@ -41,9 +43,9 @@ public class KnowledgeBaseController {
 //    }
 
     @GetMapping
-    public ApiResponse<List<KnowledgeBaseVO>> getAll() {
+    public ApiResponse<GetKnowledgeBasesResponse> getAll() {
         List<KnowledgeBaseVO> knowledgeBases = knowledgeBaseService.getAll();
-        return ApiResponse.success(knowledgeBases);
+        return ApiResponse.success(GetKnowledgeBasesResponse.builder().knowledgeBases(knowledgeBases.toArray(new KnowledgeBaseVO[0])).build());
     }
 
 //    @GetMapping("/page")

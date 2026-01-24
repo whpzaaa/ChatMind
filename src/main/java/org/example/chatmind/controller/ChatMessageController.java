@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.ChatMessageDTO;
+import org.example.chatmind.model.response.CreateChatMessageResponse;
+import org.example.chatmind.model.response.GetChatMessagesResponse;
 import org.example.chatmind.model.vo.ChatMessageVO;
 import org.example.chatmind.service.ChatMessageService;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,9 @@ public class ChatMessageController {
     private final ChatMessageService chatMessageService;
 
     @PostMapping
-    public ApiResponse<String> create(@RequestBody ChatMessageDTO dto) {
+    public ApiResponse<CreateChatMessageResponse> create(@RequestBody ChatMessageDTO dto) {
         String chatMessageId = chatMessageService.create(dto);
-        return ApiResponse.success(chatMessageId);
+        return ApiResponse.success(CreateChatMessageResponse.builder().chatMessageId(chatMessageId).build());
     }
 
     @PutMapping("/{id}")
@@ -37,9 +39,9 @@ public class ChatMessageController {
 
 
     @GetMapping("/session/{sessionId}")
-    public ApiResponse<List<ChatMessageVO>> getBySessionId(@PathVariable String sessionId) {
+    public ApiResponse<GetChatMessagesResponse> getBySessionId(@PathVariable String sessionId) {
         List<ChatMessageVO> chatMessages = chatMessageService.getBySessionId(sessionId);
-        return ApiResponse.success(chatMessages);
+        return ApiResponse.success(GetChatMessagesResponse.builder().chatMessages(chatMessages.toArray(new ChatMessageVO[0])).build());
     }
 
     //    @GetMapping("/{id}")

@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.DocumentDTO;
+import org.example.chatmind.model.response.CreateDocumentResponse;
+import org.example.chatmind.model.response.GetDocumentsResponse;
 import org.example.chatmind.model.vo.DocumentVO;
 import org.example.chatmind.service.DocumentService;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +20,9 @@ public class DocumentController {
     private final DocumentService documentService;
 
     @PostMapping
-    public ApiResponse<String> create(@RequestBody DocumentDTO dto) {
+    public ApiResponse<CreateDocumentResponse> create(@RequestBody DocumentDTO dto) {
         String documentId = documentService.create(dto);
-        return ApiResponse.success(documentId);
+        return ApiResponse.success(CreateDocumentResponse.builder().documentId(documentId).build());
     }
 
     @PutMapping("/{id}")
@@ -37,22 +39,23 @@ public class DocumentController {
 
 
     @GetMapping("/kb/{kbId}")
-    public ApiResponse<List<DocumentVO>> getByKbId(@PathVariable String kbId) {
+    public ApiResponse<GetDocumentsResponse> getByKbId(@PathVariable String kbId) {
         List<DocumentVO> documents = documentService.getByKbId(kbId);
-        return ApiResponse.success(documents);
+        return ApiResponse.success(GetDocumentsResponse.builder().documents(documents.toArray(new DocumentVO[0])).build());
     }
 
     @GetMapping
-    public ApiResponse<List<DocumentVO>> getAll() {
+    public ApiResponse<GetDocumentsResponse> getAll() {
         List<DocumentVO> documents = documentService.getAll();
-        return ApiResponse.success(documents);
+        return ApiResponse.success(GetDocumentsResponse.builder().documents(documents.toArray(new DocumentVO[0])).build());
     }
 
     @PostMapping("/upload")
-    public ApiResponse<String> uploadDocument(
+    public ApiResponse<CreateDocumentResponse> uploadDocument(
             @RequestParam("kbId") String kbId
             ,@RequestParam("file") MultipartFile file) {
-        return ApiResponse.success(documentService.uploadDocument(kbId,file));
+        String documentId = documentService.uploadDocument(kbId, file);
+        return ApiResponse.success(CreateDocumentResponse.builder().documentId(documentId).build());
     }
 //    @GetMapping("/page")
 //    public ApiResponse<List<DocumentVO>> getByPage(@RequestParam(defaultValue = "1") int pageNum,

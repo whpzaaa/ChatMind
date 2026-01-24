@@ -3,6 +3,10 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.ChatSessionDTO;
+import org.example.chatmind.model.response.CreateChatSessionResponse;
+import org.example.chatmind.model.response.GetChatMessagesResponse;
+import org.example.chatmind.model.response.GetChatSessionResponse;
+import org.example.chatmind.model.response.GetChatSessionsResponse;
 import org.example.chatmind.model.vo.ChatSessionVO;
 import org.example.chatmind.service.ChatSessionService;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +21,9 @@ public class ChatSessionController {
     private final ChatSessionService chatSessionService;
 
     @PostMapping
-    public ApiResponse<String> create(@RequestBody ChatSessionDTO dto) {
+    public ApiResponse<CreateChatSessionResponse> create(@RequestBody ChatSessionDTO dto) {
         String chatSessionId = chatSessionService.create(dto);
-        return ApiResponse.success(chatSessionId);
+        return ApiResponse.success(CreateChatSessionResponse.builder().chatSessionId(chatSessionId).build());
     }
 
     @PutMapping("/{id}")
@@ -35,21 +39,21 @@ public class ChatSessionController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ChatSessionVO> getById(@PathVariable String id) {
+    public ApiResponse<GetChatSessionResponse> getById(@PathVariable String id) {
         ChatSessionVO chatSessionVO = chatSessionService.getById(id);
-        return ApiResponse.success(chatSessionVO);
+        return ApiResponse.success(GetChatSessionResponse.builder().chatSession(chatSessionVO).build());
     }
 
     @GetMapping("/agent/{agentId}")
-    public ApiResponse<List<ChatSessionVO>> getByAgentId(@PathVariable String agentId) {
+    public ApiResponse<GetChatSessionsResponse> getByAgentId(@PathVariable String agentId) {
         List<ChatSessionVO> chatSessions = chatSessionService.getByAgentId(agentId);
-        return ApiResponse.success(chatSessions);
+        return ApiResponse.success(GetChatSessionsResponse.builder().chatSessions(chatSessions.toArray(new ChatSessionVO[0])).build());
     }
 
     @GetMapping
-    public ApiResponse<List<ChatSessionVO>> getAll() {
+    public ApiResponse<GetChatSessionsResponse> getAll() {
         List<ChatSessionVO> chatSessions = chatSessionService.getAll();
-        return ApiResponse.success(chatSessions);
+        return ApiResponse.success(GetChatSessionsResponse.builder().chatSessions(chatSessions.toArray(new ChatSessionVO[0])).build());
     }
 
 //    @GetMapping("/page")

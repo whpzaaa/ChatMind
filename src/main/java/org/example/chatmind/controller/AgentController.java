@@ -3,10 +3,13 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.AgentDTO;
+import org.example.chatmind.model.response.CreateAgentResponse;
+import org.example.chatmind.model.response.GetAgentsResponse;
 import org.example.chatmind.model.vo.AgentVO;
 import org.example.chatmind.service.AgentService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -17,9 +20,9 @@ public class AgentController {
     private final AgentService agentService;
 
     @PostMapping
-    public ApiResponse<String> create(@RequestBody AgentDTO dto) {
+    public ApiResponse<CreateAgentResponse> create(@RequestBody AgentDTO dto) {
         String agentId = agentService.create(dto);
-        return ApiResponse.success(agentId);
+        return ApiResponse.success(CreateAgentResponse.builder().agentId(agentId).build());
     }
 
     @PutMapping("/{id}")
@@ -41,9 +44,9 @@ public class AgentController {
 //    }
 
     @GetMapping
-    public ApiResponse<List<AgentVO>> getAll() {
+    public ApiResponse<GetAgentsResponse> getAll() {
         List<AgentVO> agents = agentService.getAll();
-        return ApiResponse.success(agents);
+        return ApiResponse.success(GetAgentsResponse.builder().agents(agents.toArray(new AgentVO[0])).build());
     }
 //
 //    @GetMapping("/page")
