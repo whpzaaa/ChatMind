@@ -106,7 +106,7 @@ public class ChatMind {
                 ChatMessageDTO chatMessageDTO = ChatMessageDTO.builder()
                         .sessionId(chatSessionId)
                         .role(ChatMessageDTO.RoleType.TOOL)
-                        .content(toolResponseMessage.getText())
+                        .content(toolResponse.responseData())
                         .metadata(ChatMessageDTO.MetaData.builder().toolResponse(toolResponse).build())
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
