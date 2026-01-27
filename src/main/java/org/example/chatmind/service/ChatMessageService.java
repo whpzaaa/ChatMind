@@ -1,11 +1,14 @@
 package org.example.chatmind.service;
 
 import org.example.chatmind.model.dto.ChatMessageDTO;
+import org.example.chatmind.model.entity.ChatMessage;
 import org.example.chatmind.model.vo.ChatMessageVO;
 
 import java.util.List;
 
 public interface ChatMessageService {
+
+    String create(String agentId,ChatMessageDTO dto);
 
     String create(ChatMessageDTO dto);
 

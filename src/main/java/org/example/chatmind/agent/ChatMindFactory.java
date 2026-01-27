@@ -45,7 +45,6 @@ public class ChatMindFactory {
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final ChatMessageMapper  chatMessageMapper;
     private final ObjectMapper objectMapper;
-    private  AgentVO agentConfig;
     private final ChatMessageService chatMessageService;
     private final ToolServiceImpl toolService;
 
@@ -64,7 +63,7 @@ public class ChatMindFactory {
     }
 
     //将数据中的记忆恢复成list<message>结构
-    private List<Message> restoreMemory(String chatSessionId) throws JsonProcessingException {
+    private List<Message> restoreMemory(String chatSessionId,AgentVO agentConfig) throws JsonProcessingException {
         List<Message> memory = new ArrayList<>();
         Integer messageLength = agentConfig.getChatOptions().getMessageLength();
         List<ChatMessage> chatMessages = chatMessageMapper.selectBySessionIdRecently(chatSessionId, messageLength);
@@ -104,9 +103,9 @@ public class ChatMindFactory {
             ChatMessageDTO dto = ChatMessageDTO.builder()
                     .id(chatMessage.getId())
                     .sessionId(chatMessage.getSessionId())
-                    .role(ChatMessageDTO.RoleType.valueOf(chatMessage.getRole()))
+                    .role(ChatMessageDTO.RoleType.fromRole(chatMessage.getRole()))
                     .content(chatMessage.getContent())
-                    .metadata(objectMapper.readValue(chatMessage.getMetadata(), ChatMessageDTO.MetaData.class))
+                    .metadata(chatMessage.getMetadata() != null ? objectMapper.readValue(chatMessage.getMetadata(), ChatMessageDTO.MetaData.class): null)
                     .build();
             dtos.add(dto);
         }
@@ -116,6 +115,7 @@ public class ChatMindFactory {
     //把agent转换agentvo
     private AgentVO convertToVO(Agent agent)  {
         try {
+            AgentVO agentConfig = new AgentVO();
             BeanUtils.copyProperties(agent, agentConfig, "allowedTools", "allowedKbs", "chatOptions");
             agentConfig.setChatOptions(objectMapper.readValue(agent.getChatOptions(), AgentDTO.ChatOptions.class));
             agentConfig.setAllowedTools(objectMapper.readValue(agent.getAllowedTools(), new TypeReference<List<String>>() {}));
@@ -140,7 +140,7 @@ public class ChatMindFactory {
                                 .id(knowledgeBase.getId())
                                 .name(knowledgeBase.getName())
                                 .description(knowledgeBase.getDescription())
-                                .metadata(objectMapper.readValue(knowledgeBase.getMetadata(), KnowledgeBaseDTO.MetaData.class))
+                                .metadata(knowledgeBase.getMetadata() != null ? objectMapper.readValue(knowledgeBase.getMetadata(), KnowledgeBaseDTO.MetaData.class): null)
                                 .createdAt(knowledgeBase.getCreatedAt())
                                 .updatedAt(knowledgeBase.getUpdatedAt())
                                 .build();
@@ -191,7 +191,8 @@ public class ChatMindFactory {
             List<Message> memory,
             List<ToolCallback> toolCallbacks,
             List<KnowledgeBaseDTO> availableKnowledgeBases,
-            String chatSessionId
+            String chatSessionId,
+            AgentVO agentConfig
     ) {
         ChatClient chatClient = chatClientRegistry.getChatClient(agent.getModel());
         if(chatClient == null) throw new IllegalArgumentException("chat client not found");
@@ -215,7 +216,7 @@ public class ChatMindFactory {
     public ChatMind createChatMind(String agentId, String chatSessionId) throws JsonProcessingException {
         Agent agent = getAgent(agentId);
         AgentVO agentConfig = convertToVO(agent);
-        List<Message> memory = restoreMemory(chatSessionId);
+        List<Message> memory = restoreMemory(chatSessionId, agentConfig);
         List<KnowledgeBaseDTO> availableKnowledgeBases = getKnowledgeBases(agentConfig);
         List<Tool> tools = getTools(agentConfig);
         List<ToolCallback> toolCallbacks = getToolCallbacks(tools);
@@ -224,6 +225,8 @@ public class ChatMindFactory {
                 memory,
                 toolCallbacks,
                 availableKnowledgeBases,
-                chatSessionId);
+                chatSessionId,
+                agentConfig
+        );
     }
 }

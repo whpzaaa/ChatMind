@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.KnowledgeBaseDTO;
+import org.example.chatmind.model.request.CreateKnowledgeBaseRequest;
+import org.example.chatmind.model.request.UpdateKnowledgeBaseRequest;
 import org.example.chatmind.model.response.CreateKnowledgeBaseResponse;
 import org.example.chatmind.model.response.GetKnowledgeBasesResponse;
 import org.example.chatmind.model.vo.KnowledgeBaseVO;
@@ -19,13 +21,15 @@ public class KnowledgeBaseController {
     private final KnowledgeBaseService knowledgeBaseService;
 
     @PostMapping
-    public ApiResponse<CreateKnowledgeBaseResponse> create(@RequestBody KnowledgeBaseDTO dto) {
+    public ApiResponse<CreateKnowledgeBaseResponse> create(@RequestBody CreateKnowledgeBaseRequest request) {
+        KnowledgeBaseDTO dto = convertToDTO(request);
         String knowledgeBaseId = knowledgeBaseService.create(dto);
         return ApiResponse.success(CreateKnowledgeBaseResponse.builder().knowledgeBaseId(knowledgeBaseId).build());
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable String id, @RequestBody KnowledgeBaseDTO dto) {
+    @PatchMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable String id, @RequestBody UpdateKnowledgeBaseRequest request) {
+        KnowledgeBaseDTO dto = convertToDTO(request);
         knowledgeBaseService.update(id, dto);
         return ApiResponse.success();
     }
@@ -60,4 +64,18 @@ public class KnowledgeBaseController {
 //        int count = knowledgeBaseService.count();
 //        return ApiResponse.success(count);
 //    }
+
+    private KnowledgeBaseDTO convertToDTO(CreateKnowledgeBaseRequest request) {
+        return KnowledgeBaseDTO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
+    }
+
+    private KnowledgeBaseDTO convertToDTO(UpdateKnowledgeBaseRequest request) {
+        return KnowledgeBaseDTO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
+    }
 }

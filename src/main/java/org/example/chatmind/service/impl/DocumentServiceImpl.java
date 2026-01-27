@@ -17,6 +17,7 @@ import org.example.chatmind.service.MarkdownParserService;
 import org.example.chatmind.service.RagService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -67,7 +68,19 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public void delete(String id) {
-        documentMapper.deleteById(id);
+        Document document = documentMapper.selectById(id);
+        if (document == null) {
+            throw new RuntimeException("Document not found with id: " + id);
+        }
+        try {
+            documentStorageService.deleteFile(document.getMetadata().substring(1, document.getMetadata().length()-1));
+        } catch (IOException e) {
+            log.warn("删除文件失败，继续删除文档记录: documentId={}, error={}", id, e.getMessage());
+        }
+        int result = documentMapper.deleteById(id);
+        if (result <= 0) {
+            throw new BizException("删除document失败");
+        }
     }
 
     @Override
@@ -95,6 +108,7 @@ public class DocumentServiceImpl implements DocumentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public String uploadDocument(String kbId, MultipartFile file) {
         try {
@@ -106,7 +120,6 @@ public class DocumentServiceImpl implements DocumentService {
                     .filename(file.getOriginalFilename())
                     .filetype(getFileType(file))
                     .size(file.getSize())
-                    .metadata("")
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();
@@ -119,7 +132,7 @@ public class DocumentServiceImpl implements DocumentService {
 
             String documentPath = documentStorageService.saveFile(kbId, documentId, file);
 
-            document.setMetadata(documentPath);
+            document.setMetadata("\"" + documentPath + "\"");
             document.setUpdatedAt(LocalDateTime.now());
             document.setCreatedAt(LocalDateTime.now());
 

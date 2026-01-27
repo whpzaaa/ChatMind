@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.ChatSessionDTO;
+import org.example.chatmind.model.request.CreateChatSessionRequest;
+import org.example.chatmind.model.request.UpdateChatSessionRequest;
 import org.example.chatmind.model.response.CreateChatSessionResponse;
 import org.example.chatmind.model.response.GetChatMessagesResponse;
 import org.example.chatmind.model.response.GetChatSessionResponse;
@@ -21,13 +23,15 @@ public class ChatSessionController {
     private final ChatSessionService chatSessionService;
 
     @PostMapping
-    public ApiResponse<CreateChatSessionResponse> create(@RequestBody ChatSessionDTO dto) {
+    public ApiResponse<CreateChatSessionResponse> create(@RequestBody CreateChatSessionRequest request) {
+        ChatSessionDTO dto = convertToDTO(request);
         String chatSessionId = chatSessionService.create(dto);
         return ApiResponse.success(CreateChatSessionResponse.builder().chatSessionId(chatSessionId).build());
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable String id, @RequestBody ChatSessionDTO dto) {
+    @PatchMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable String id, @RequestBody UpdateChatSessionRequest request) {
+        ChatSessionDTO dto = convertToDTO(request);
         chatSessionService.update(id, dto);
         return ApiResponse.success();
     }
@@ -74,4 +78,17 @@ public class ChatSessionController {
 //        int count = chatSessionService.countByAgentId(agentId);
 //        return ApiResponse.success(count);
 //    }
+
+    private ChatSessionDTO convertToDTO(CreateChatSessionRequest request) {
+        return ChatSessionDTO.builder()
+                .agentId(request.getAgentId())
+                .title(request.getTitle())
+                .build();
+    }
+
+    private ChatSessionDTO convertToDTO(UpdateChatSessionRequest request) {
+        return ChatSessionDTO.builder()
+                .title(request.getTitle())
+                .build();
+    }
 }

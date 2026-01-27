@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.ChatMessageDTO;
+import org.example.chatmind.model.request.CreateChatMessageRequest;
+import org.example.chatmind.model.request.UpdateChatMessageRequest;
 import org.example.chatmind.model.response.CreateChatMessageResponse;
 import org.example.chatmind.model.response.GetChatMessagesResponse;
 import org.example.chatmind.model.vo.ChatMessageVO;
@@ -19,13 +21,15 @@ public class ChatMessageController {
     private final ChatMessageService chatMessageService;
 
     @PostMapping
-    public ApiResponse<CreateChatMessageResponse> create(@RequestBody ChatMessageDTO dto) {
-        String chatMessageId = chatMessageService.create(dto);
+    public ApiResponse<CreateChatMessageResponse> create(@RequestBody CreateChatMessageRequest request) {
+        ChatMessageDTO dto = convertToDTO(request);
+        String chatMessageId = chatMessageService.create(request.getAgentId(),dto);
         return ApiResponse.success(CreateChatMessageResponse.builder().chatMessageId(chatMessageId).build());
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable String id, @RequestBody ChatMessageDTO dto) {
+    @PatchMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable String id, @RequestBody UpdateChatMessageRequest request) {
+        ChatMessageDTO dto = convertToDTO(request);
         chatMessageService.update(id, dto);
         return ApiResponse.success();
     }
@@ -62,4 +66,20 @@ public class ChatMessageController {
 //        int count = chatMessageService.countBySessionId(sessionId);
 //        return ApiResponse.success(count);
 //    }
+
+    private ChatMessageDTO convertToDTO(CreateChatMessageRequest request) {
+        return ChatMessageDTO.builder()
+                .sessionId(request.getSessionId())
+                .role(request.getRole())
+                .content(request.getContent())
+                .metadata(request.getMetadata())
+                .build();
+    }
+
+    private ChatMessageDTO convertToDTO(UpdateChatMessageRequest request) {
+        return ChatMessageDTO.builder()
+                .content(request.getContent())
+                .metadata(request.getMetadata())
+                .build();
+    }
 }

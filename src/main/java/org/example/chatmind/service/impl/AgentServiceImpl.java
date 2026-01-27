@@ -77,9 +77,12 @@ public class AgentServiceImpl implements AgentService {
 
     private Agent convertToEntity(AgentDTO dto) {
         Agent agent = new Agent();
-        BeanUtils.copyProperties(dto, agent, "allowedTools", "allowedKbs", "chatOptions");
+        BeanUtils.copyProperties(dto, agent,"model", "allowedTools", "allowedKbs", "chatOptions");
 
         try {
+            if (dto.getModel() != null){
+                agent.setModel(dto.getModel().getModelName());
+            }
             if (dto.getAllowedTools() != null) {
                 agent.setAllowedTools(objectMapper.writeValueAsString(dto.getAllowedTools()));
             }
@@ -98,9 +101,12 @@ public class AgentServiceImpl implements AgentService {
 
     private AgentVO convertToVO(Agent agent) {
         AgentVO vo = new AgentVO();
-        BeanUtils.copyProperties(agent, vo, "allowedTools", "allowedKbs", "chatOptions");
+        BeanUtils.copyProperties(agent, vo, "model","allowedTools", "allowedKbs", "chatOptions");
 
         try {
+            if (agent.getModel() != null){
+                vo.setModel(AgentDTO.ModelType.fromModelName(agent.getModel()));
+            }
             if (agent.getAllowedTools() != null) {
                 vo.setAllowedTools(objectMapper.readValue(agent.getAllowedTools(), new TypeReference<List<String>>() {}));
             }

@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.DocumentDTO;
+import org.example.chatmind.model.request.CreateDocumentRequest;
+import org.example.chatmind.model.request.UpdateDocumentRequest;
 import org.example.chatmind.model.response.CreateDocumentResponse;
 import org.example.chatmind.model.response.GetDocumentsResponse;
 import org.example.chatmind.model.vo.DocumentVO;
@@ -20,13 +22,15 @@ public class DocumentController {
     private final DocumentService documentService;
 
     @PostMapping
-    public ApiResponse<CreateDocumentResponse> create(@RequestBody DocumentDTO dto) {
+    public ApiResponse<CreateDocumentResponse> create(@RequestBody CreateDocumentRequest request) {
+        DocumentDTO dto = convertToDTO(request);
         String documentId = documentService.create(dto);
         return ApiResponse.success(CreateDocumentResponse.builder().documentId(documentId).build());
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable String id, @RequestBody DocumentDTO dto) {
+    @PatchMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable String id, @RequestBody UpdateDocumentRequest request) {
+        DocumentDTO dto = convertToDTO(request);
         documentService.update(id, dto);
         return ApiResponse.success();
     }
@@ -75,4 +79,21 @@ public class DocumentController {
 //        int count = documentService.countByKbId(kbId);
 //        return ApiResponse.success(count);
 //    }
+
+    private DocumentDTO convertToDTO(CreateDocumentRequest request) {
+        return DocumentDTO.builder()
+                .kbId(request.getKbId())
+                .filename(request.getFilename())
+                .filetype(request.getFiletype())
+                .size(request.getSize())
+                .build();
+    }
+
+    private DocumentDTO convertToDTO(UpdateDocumentRequest request) {
+        return DocumentDTO.builder()
+                .filename(request.getFilename())
+                .filetype(request.getFiletype())
+                .size(request.getSize())
+                .build();
+    }
 }

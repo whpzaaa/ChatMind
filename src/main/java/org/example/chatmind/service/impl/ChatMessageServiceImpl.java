@@ -3,6 +3,7 @@ package org.example.chatmind.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.example.chatmind.event.ChatEvent;
 import org.example.chatmind.exception.BizException;
 import org.example.chatmind.mapper.ChatMessageMapper;
 import org.example.chatmind.model.dto.ChatMessageDTO;
@@ -10,6 +11,7 @@ import org.example.chatmind.model.entity.ChatMessage;
 import org.example.chatmind.model.vo.ChatMessageVO;
 import org.example.chatmind.service.ChatMessageService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,6 +24,19 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageMapper chatMessageMapper;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    @Override
+    public String create(String agentId,ChatMessageDTO dto) {
+        ChatMessage chatMessage = convertToEntity(dto);
+        chatMessage.setCreatedAt(LocalDateTime.now());
+        chatMessage.setUpdatedAt(LocalDateTime.now());
+        int result = chatMessageMapper.insert(chatMessage);
+        if(result <= 0){
+            throw new BizException("创建chatMessage失败");
+        }
+        applicationEventPublisher.publishEvent(new ChatEvent(agentId, chatMessage.getSessionId(), chatMessage.getContent()));
+        return chatMessage.getId();
+    }
 
     @Override
     public String create(ChatMessageDTO dto) {

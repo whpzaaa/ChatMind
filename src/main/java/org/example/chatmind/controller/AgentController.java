@@ -3,6 +3,8 @@ package org.example.chatmind.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.chatmind.model.common.ApiResponse;
 import org.example.chatmind.model.dto.AgentDTO;
+import org.example.chatmind.model.request.CreateAgentRequest;
+import org.example.chatmind.model.request.UpdateAgentRequest;
 import org.example.chatmind.model.response.CreateAgentResponse;
 import org.example.chatmind.model.response.GetAgentsResponse;
 import org.example.chatmind.model.vo.AgentVO;
@@ -20,13 +22,15 @@ public class AgentController {
     private final AgentService agentService;
 
     @PostMapping
-    public ApiResponse<CreateAgentResponse> create(@RequestBody AgentDTO dto) {
+    public ApiResponse<CreateAgentResponse> create(@RequestBody CreateAgentRequest request) {
+        AgentDTO dto = convertToDTO(request);
         String agentId = agentService.create(dto);
         return ApiResponse.success(CreateAgentResponse.builder().agentId(agentId).build());
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable String id, @RequestBody AgentDTO dto) {
+    @PatchMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable String id, @RequestBody UpdateAgentRequest request) {
+        AgentDTO dto = convertToDTO(request);
         agentService.update(id, dto);
         return ApiResponse.success();
     }
@@ -61,4 +65,28 @@ public class AgentController {
 //        int count = agentService.count();
 //        return ApiResponse.success(count);
 //    }
+
+    private AgentDTO convertToDTO(CreateAgentRequest request) {
+        return AgentDTO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .systemPrompt(request.getSystemPrompt())
+                .model(AgentDTO.ModelType.fromModelName(request.getModel()))
+                .allowedTools(request.getAllowedTools())
+                .allowedKbs(request.getAllowedKbs())
+                .chatOptions(request.getChatOptions())
+                .build();
+    }
+
+    private AgentDTO convertToDTO(UpdateAgentRequest request) {
+        return AgentDTO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .systemPrompt(request.getSystemPrompt())
+                .model(AgentDTO.ModelType.fromModelName(request.getModel()))
+                .allowedTools(request.getAllowedTools())
+                .allowedKbs(request.getAllowedKbs())
+                .chatOptions(request.getChatOptions())
+                .build();
+    }
 }
